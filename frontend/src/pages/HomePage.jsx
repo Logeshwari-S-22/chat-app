@@ -1,9 +1,13 @@
 import { useChatStore } from "../store/useChatStore";
-
+import { useEffect } from "react";
 
 import NoChatSelected from "../components/NoChatSelected";
 import ChatContainer from "../components/ChatContainer";
 import Sidebar from "../components/Sidebar";
+
+useEffect(() => {
+  useChatStore.getState().subscribeToGlobalMessages();
+}, []);
 
 const HomePage = () => {
   const { selectedUser } = useChatStore();

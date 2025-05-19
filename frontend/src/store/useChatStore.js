@@ -45,21 +45,36 @@ export const useChatStore = create((set, get) => ({
     }
   },
 
-  subscribeToMessages: () => {
-    const { selectedUser } = get();
-    if (!selectedUser) return;
+  subscribeToGlobalMessages: () => {
+  const socket = useAuthStore.getState().socket;
 
-    const socket = useAuthStore.getState().socket;
+  if (!socket) return;
 
-    socket.on("newMessage", (newMessage) => {
-      const isMessageSentFromSelectedUser = newMessage.senderId === selectedUser._id;
-      if (!isMessageSentFromSelectedUser) return;
+  // First remove old listener to prevent duplicates
+  socket.off("newMessage");
 
+  socket.on("newMessage", (message) => {
+    const selectedUser = get().selectedUser;
+
+    const isFromCurrentChat = selectedUser && selectedUser._id === message.senderId;
+
+    console.log("📥 Received newMessage:", message);
+    console.log("🔄 Is from current chat?", isFromCurrentChat);
+
+    if (isFromCurrentChat) {
+      // Update message list if chatting with sender
       set({
-        messages: [...get().messages, newMessage],
+        messages: [...get().messages, message],
       });
-    });
-  },
+    } else {
+      // 🔔 Show toast and play sound if from another user
+      toast(`📨 New message from ${message.senderName || "Someone"}`);
+
+      const audio = new Audio("/notification.mp3");
+      audio.play().catch((err) => console.warn("Sound play failed:", err));
+    }
+  });
+},
 
   unsubscribeFromMessages: () => {
     const socket = useAuthStore.getState().socket;
