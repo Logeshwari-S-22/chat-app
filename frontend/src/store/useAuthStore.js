@@ -99,7 +99,20 @@ export const useAuthStore = create((set, get) => ({
     socket.on("getOnlineUsers", (userIds) => {
       set({ onlineUsers: userIds });
     });
+    socket.on("newMessage", (message) => {
+    const selectedUser = useChatStore.getState().selectedUser;
+
+    const isFromCurrentChat =
+      selectedUser && selectedUser._id === message.senderId;
+
+    if (!isFromCurrentChat) {
+      toast(`📨 New message from ${message.senderName || "Someone"}`);
+      const audio = new Audio("/notification.mp3");
+      audio.play();
+    }
+  });
   },
+  
   disconnectSocket: () => {
     if (get().socket?.connected) get().socket.disconnect();
   },
