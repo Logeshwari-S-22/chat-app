@@ -108,7 +108,9 @@ export const useAuthStore = create((set, get) => ({
     if (!isFromCurrentChat) {
       toast(`📨 New message from ${message.senderName || "Someone"}`);
       const audio = new Audio("/notification.mp3");
-      audio.play();
+      audio.play().catch((err) => {
+      console.warn("Notification sound blocked:", err.message);
+      });
     }
   });
   },
