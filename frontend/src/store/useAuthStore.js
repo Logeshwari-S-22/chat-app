@@ -100,19 +100,22 @@ export const useAuthStore = create((set, get) => ({
       set({ onlineUsers: userIds });
     });
     socket.on("newMessage", (message) => {
-    const selectedUser = useChatStore.getState().selectedUser;
+  const selectedUser = useChatStore.getState().selectedUser;
+  const isFromCurrentChat = selectedUser && selectedUser._id === message.senderId;
 
-    const isFromCurrentChat =
-      selectedUser && selectedUser._id === message.senderId;
+  console.log("📥 Message received:", message);
+  console.log("👤 Selected user:", selectedUser);
+  console.log("🟡 isFromCurrentChat:", isFromCurrentChat);
 
-    if (!isFromCurrentChat) {
-      toast(`📨 New message from ${message.senderName || "Someone"}`);
-      const audio = new Audio("/notification.mp3");
-      audio.play().catch((err) => {
-      console.warn("Notification sound blocked:", err.message);
-      });
-    }
-  });
+  if (!isFromCurrentChat) {
+    console.log("🔔 Showing toast now");
+    toast(`📨 New message from ${message.senderName || "Someone"}`);
+    
+    const audio = new Audio("/notification.mp3");
+    audio.play().catch((err) => console.warn("Sound blocked:", err.message));
+  }
+});
+
   },
   
   disconnectSocket: () => {
