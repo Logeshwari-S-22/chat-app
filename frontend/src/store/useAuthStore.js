@@ -110,16 +110,10 @@ connectSocket: () => {
                     { fullName: "Someone" };
       
       // Show notification
-      toast(
-        <div className="flex items-center gap-2">
-          <span>📨</span>
-          <span>New message from {sender.fullName}</span>
-        </div>,
-        {
-          duration: 5000,
-          position: 'bottom-right'
-        }
-      );
+      toast(`📨 New message from ${sender.fullName}`, {
+  duration: 5000,
+  position: 'bottom-right'
+});
 
       // Play sound if allowed
       try {
