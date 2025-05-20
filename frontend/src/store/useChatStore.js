@@ -74,7 +74,7 @@ hasUnreadMessages: (userId) => {
     if (isFromCurrentChat) {
       set({ messages: [...messages, newMessage] });
     } else {
-      const sender = users.find((u) => u._id === newMessage.senderId) || { fullName: "Someone" };
+      const senderName = newMessage.senderName || "Unknown";
       toast(`📨 New message from ${sender.fullName}`, {
         duration: 5000,
         position: "bottom-right",
