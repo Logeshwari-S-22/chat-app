@@ -43,7 +43,6 @@ export const sendMessage = async (req, res) => {
 
     let imageUrl;
     if (image) {
-      // Upload base64 image to cloudinary
       const uploadResponse = await cloudinary.uploader.upload(image);
       imageUrl = uploadResponse.secure_url;
     }
@@ -57,9 +56,14 @@ export const sendMessage = async (req, res) => {
 
     await newMessage.save();
 
+    // Populate sender info for the notification
+    const populatedMessage = await Message.findById(newMessage._id)
+      .populate('senderId', 'fullName profilePic')
+      .exec();
+
     const receiverSocketId = getReceiverSocketId(receiverId);
     if (receiverSocketId) {
-      io.to(receiverSocketId).emit("newMessage", newMessage);
+      io.to(receiverSocketId).emit("newMessage", populatedMessage);
     }
 
     res.status(201).json(newMessage);

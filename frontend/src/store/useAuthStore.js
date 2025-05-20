@@ -82,38 +82,58 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
-  connectSocket: () => {
-    const { authUser } = get();
-    if (!authUser || get().socket?.connected) return;
+  // In your connectSocket function in useAuthStore.js
+connectSocket: () => {
+  const { authUser } = get();
+  if (!authUser || get().socket?.connected) return;
 
-    const socket = io(baseURL, {
-      query: {
-        userId: authUser._id,
-      },
-    });
-    
-    socket.connect();
+  const socket = io(baseURL, {
+    query: {
+      userId: authUser._id,
+    },
+  });
+  
+  socket.connect();
+  set({ socket: socket });
 
-    set({ socket: socket });
+  socket.on("getOnlineUsers", (userIds) => {
+    set({ onlineUsers: userIds });
+  });
 
-    socket.on("getOnlineUsers", (userIds) => {
-      set({ onlineUsers: userIds });
-    });
-    socket.on("newMessage", (message) => {
-    const selectedUser = useChatStore.getState().selectedUser;
-
-    const isFromCurrentChat =
-      selectedUser && selectedUser._id === message.senderId;
+  socket.on("newMessage", (message) => {
+    const { selectedUser } = useChatStore.getState();
+    const isFromCurrentChat = selectedUser && selectedUser._id === message.senderId;
 
     if (!isFromCurrentChat) {
-      toast(`📨 New message from ${message.senderName || "Someone"}`);
-      const audio = new Audio("/notification.mp3");
-      audio.play().catch((err) => {
-      console.warn("Notification sound blocked:", err.message);
-      });
+      // Get sender name from users list or message object
+      const sender = useChatStore.getState().users.find(u => u._id === message.senderId) || 
+                    { fullName: "Someone" };
+      
+      // Show notification
+      toast(
+        <div className="flex items-center gap-2">
+          <span>📨</span>
+          <span>New message from {sender.fullName}</span>
+        </div>,
+        {
+          duration: 5000,
+          position: 'bottom-right'
+        }
+      );
+
+      // Play sound if allowed
+      try {
+        const audio = new Audio("/notification.mp3");
+        audio.volume = 0.3; // Lower volume to be less intrusive
+        audio.play().catch(err => {
+          console.warn("Notification sound blocked:", err.message);
+        });
+      } catch (err) {
+        console.error("Error with notification sound:", err);
+      }
     }
   });
-  },
+},
   
   disconnectSocket: () => {
     if (get().socket?.connected) get().socket.disconnect();

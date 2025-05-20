@@ -45,6 +45,22 @@ export const useChatStore = create((set, get) => ({
     }
   },
 
+  // In useChatStore.js
+markMessagesAsRead: async (userId) => {
+  try {
+    await axiosInstance.patch(`/messages/mark-read/${userId}`);
+    // Update local state if needed
+  } catch (error) {
+    console.error("Error marking messages as read:", error);
+  }
+},
+
+hasUnreadMessages: (userId) => {
+  return get().messages.some(
+    msg => msg.senderId === userId && !msg.read
+  );
+},
+
   subscribeToMessages: () => {
     const { selectedUser } = get();
     if (!selectedUser) return;

@@ -33,6 +33,14 @@ const App = () => {
         <Loader className="size-10 animate-spin" />
       </div>
     );
+    useEffect(() => {
+  // Request notification permission on first load
+  if ('Notification' in window) {
+    Notification.requestPermission().then(permission => {
+      console.log('Notification permission:', permission);
+    });
+  }
+}, []);
 
   return (
     <div data-theme={theme}>
