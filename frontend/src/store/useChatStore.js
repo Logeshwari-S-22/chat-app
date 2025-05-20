@@ -75,7 +75,7 @@ hasUnreadMessages: (userId) => {
       set({ messages: [...messages, newMessage] });
     } else {
       const senderName = newMessage.senderName || "Unknown";
-      toast(`📨 New message from ${sender.fullName}`, {
+      toast(`📨 New message from ${senderName}`, {
         duration: 5000,
         position: "bottom-right",
       });
