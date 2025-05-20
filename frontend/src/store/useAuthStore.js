@@ -100,33 +100,6 @@ connectSocket: () => {
     set({ onlineUsers: userIds });
   });
 
-  socket.on("newMessage", (message) => {
-    const { selectedUser } = useChatStore.getState();
-    const isFromCurrentChat = selectedUser && selectedUser._id === message.senderId;
-
-    if (!isFromCurrentChat) {
-      // Get sender name from users list or message object
-      const sender = useChatStore.getState().users.find(u => u._id === message.senderId) || 
-                    { fullName: "Someone" };
-      
-      // Show notification
-      toast(`📨 New message from ${sender.fullName}`, {
-  duration: 5000,
-  position: 'bottom-right'
-});
-
-      // Play sound if allowed
-      try {
-        const audio = new Audio("/notification.mp3");
-        audio.volume = 0.3; // Lower volume to be less intrusive
-        audio.play().catch(err => {
-          console.warn("Notification sound blocked:", err.message);
-        });
-      } catch (err) {
-        console.error("Error with notification sound:", err);
-      }
-    }
-  });
 },
   
   disconnectSocket: () => {

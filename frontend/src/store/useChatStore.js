@@ -61,22 +61,38 @@ hasUnreadMessages: (userId) => {
   );
 },
 
-  subscribeToMessages: () => {
-    const { selectedUser } = get();
-    if (!selectedUser) return;
+ subscribeToMessages: () => {
+  const socket = useAuthStore.getState().socket;
+  if (!socket) return;
 
-    const socket = useAuthStore.getState().socket;
+  socket.off("newMessage"); // prevent duplicates
 
-    socket.on("newMessage", (newMessage) => {
-      const isMessageSentFromSelectedUser = newMessage.senderId === selectedUser._id;
-      if (!isMessageSentFromSelectedUser) return;
+  socket.on("newMessage", (newMessage) => {
+    const { selectedUser, messages, users } = get();
+    const isFromCurrentChat = selectedUser && newMessage.senderId === selectedUser._id;
 
-      set({
-        messages: [...get().messages, newMessage],
+    if (isFromCurrentChat) {
+      set({ messages: [...messages, newMessage] });
+    } else {
+      const sender = users.find((u) => u._id === newMessage.senderId) || { fullName: "Someone" };
+      toast(`📨 New message from ${sender.fullName}`, {
+        duration: 5000,
+        position: "bottom-right",
       });
-    });
-  },
 
+      try {
+        const audio = new Audio("/notification.mp3");
+        audio.volume = 0.3;
+        audio.play().catch((err) => {
+          console.warn("Notification sound blocked:", err.message);
+        });
+      } catch (err) {
+        console.error("Error with notification sound:", err);
+      }
+    }
+  });
+},
+ 
   unsubscribeFromMessages: () => {
     const socket = useAuthStore.getState().socket;
     socket.off("newMessage");
